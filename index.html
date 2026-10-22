@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0B0D12" />
+    <title>GlitchBox — A Puzzle That Learns Your Playstyle</title>
+    <meta name="description" content="An adaptive mystery puzzle game: the clues and the path change based on how you solve. InnoTech ’26 prototype." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="fx-grid" aria-hidden="true"></div>
+    <div class="fx-scan" aria-hidden="true"></div>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="topbar" id="topbar" hidden>
+      <button type="button" class="wordmark-btn" id="btn-home" aria-label="GlitchBox — back to player setup">
+        <span class="logo-mini" aria-hidden="true"></span><span class="wordmark" data-text="GLITCHBOX">GLITCHBOX</span>
+      </button>
+      <div class="topbar-meta mono">
+        <span class="meta-item"><span class="muted">CASE</span> <span id="tb-case">—</span></span>
+        <span class="meta-item" id="tb-player"></span>
+      </div>
+      <div class="topbar-progress" id="tb-progress" role="img" aria-label="Session progress"></div>
+      <div class="topbar-actions">
+        <button type="button" class="icon-btn" id="btn-sound" aria-pressed="false" aria-label="Sound off" title="Toggle sound">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" /><path class="snd-wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" /><path class="snd-off" d="M16 9l5 6M21 9l-5 6" /></svg>
+        </button>
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-restart" hidden>Restart</button>
+      </div>
+    </header>
+
+    <main id="main">
+      <!-- ============ BOOT ============ -->
+      <section class="screen screen-boot" id="screen-boot" data-screen aria-labelledby="boot-title">
+        <pre class="boot-log mono" id="boot-log" aria-hidden="true"></pre>
+        <div class="boot-hero">
+          <div class="logo-box" aria-hidden="true"><span></span><span></span><span></span></div>
+          <h1 class="wordmark wordmark-xl glitch" id="boot-title" data-text="GLITCHBOX" tabindex="-1">GLITCHBOX</h1>
+          <p class="boot-sub">A mystery that adapts to the mind solving it.</p>
+          <p class="tagline mono">Every Mind Has a Pattern. Every Puzzle Has a Way.</p>
+          <div class="boot-ctas">
+            <button type="button" class="btn btn-primary btn-lg" id="btn-enter">Enter the box</button>
+            <button type="button" class="btn btn-ghost btn-lg" data-open-how>How it works</button>
+          </div>
+          <p class="boot-foot mono">INNOTECH ’26 · STUDENT INNOVATION PROTOTYPE · RULE-BASED ADAPTATION · RUNS OFFLINE</p>
+        </div>
+      </section>
+
+      <!-- ============ SETUP ============ -->
+      <section class="screen screen-setup" id="screen-setup" data-screen hidden aria-labelledby="setup-title">
+        <div class="setup">
+          <div class="setup-main">
+            <p class="eyebrow mono">// PLAYER SETUP</p>
+            <h1 id="setup-title" tabindex="-1">Who’s entering the box?</h1>
+            <div class="resume-slot" id="resume-slot" hidden></div>
+            <form id="setup-form" novalidate>
+              <fieldset class="mode-picker">
+                <legend class="field-label mono">Choose a mode</legend>
+                <label class="mode-card">
+                  <input type="radio" name="mode" value="solo" checked />
+                  <span class="mode-body">
+                    <span class="mode-icon" aria-hidden="true">◇</span>
+                    <span class="mode-title">Solo Run</span>
+                    <span class="mode-desc">One mind, five rooms. The box adapts its clues and path as you play.</span>
+                  </span>
+                </label>
+                <label class="mode-card">
+                  <input type="radio" name="mode" value="compare" />
+                  <span class="mode-body">
+                    <span class="mode-icon" aria-hidden="true">◇◇</span>
+                    <span class="mode-title">Compare Two Minds</span>
+                    <span class="mode-desc">Two players, the same first puzzle, tracked separately. Watch their paths split.</span>
+                  </span>
+                </label>
+              </fieldset>
+              <div class="name-fields" id="names-solo">
+                <label class="field"><span class="field-label mono">Player name</span><input id="name-solo" class="text-input" maxlength="20" autocomplete="off" placeholder="e.g. Ada" /></label>
+              </div>
+              <div class="name-fields two" id="names-compare" hidden>
+                <label class="field"><span class="field-label mono">Player A</span><input id="name-a" class="text-input" maxlength="20" autocomplete="off" placeholder="e.g. Ada" /></label>
+                <label class="field"><span class="field-label mono">Player B</span><input id="name-b" class="text-input" maxlength="20" autocomplete="off" placeholder="e.g. Grace" /></label>
+              </div>
+              <p class="form-error" id="setup-error" role="alert"></p>
+              <div class="setup-actions">
+                <button type="submit" class="btn btn-primary btn-lg">Start new session</button>
+                <button type="button" class="btn btn-ghost btn-lg" id="btn-setup-demo" hidden>Watch scripted demo</button>
+              </div>
+            </form>
+          </div>
+          <aside class="observe-note">
+            <h2 class="panel-title mono"><span class="signal" aria-hidden="true"><i></i><i></i><i></i></span>WHAT THE BOX OBSERVES</h2>
+            <ul class="observe-list">
+              <li><b>Attempts</b> — how many answers it takes to open each lock.</li>
+              <li><b>Time</b> — how long each room takes (paused when you leave the tab).</li>
+              <li><b>Hints</b> — how many you ask for, and which levels you needed.</li>
+              <li><b>Patterns across rooms</b> — which kinds of puzzle needed more support.</li>
+            </ul>
+            <p>It uses these to choose the <em>format</em> of the next clue and the <em>difficulty</em> of the next room. Every change is explained on screen.</p>
+            <p class="muted small">Transparent rules, not an AI model. No server — progress is saved only in this browser. It never measures intelligence or personality.</p>
+            <button type="button" class="link-btn mono" data-open-how>How it works →</button>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ============ SOLO GAME ============ -->
+      <section class="screen screen-game" id="screen-game" data-screen hidden aria-label="Puzzle chamber">
+        <div class="game-layout">
+          <div class="game-main" id="solo-chamber"></div>
+          <aside class="game-side">
+            <section class="panel panel-adaptive" id="solo-adaptive" aria-label="Adaptive system"></section>
+            <section class="panel" id="solo-path" aria-label="Route map"></section>
+            <section class="panel" aria-label="Progress">
+              <div id="solo-progress"></div>
+              <button type="button" class="link-btn mono" id="btn-solo-report">View session report →</button>
+            </section>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ============ COMPARE ============ -->
+      <section class="screen screen-compare" id="screen-compare" data-screen hidden aria-labelledby="compare-title">
+        <div class="compare-head">
+          <div>
+            <p class="eyebrow mono">// COMPARE TWO MINDS</p>
+            <h1 id="compare-title" tabindex="-1">Same first puzzle. Tracked separately.</h1>
+          </div>
+          <div class="compare-actions">
+            <button type="button" class="btn btn-primary" id="btn-demo">Run demo</button>
+            <button type="button" class="btn btn-ghost" id="btn-demo-stop" hidden>Stop demo</button>
+            <button type="button" class="btn btn-ghost" id="btn-live" hidden>Back to live players</button>
+          </div>
+        </div>
+        <p class="sim-banner mono" id="sim-banner" hidden><b>SIMULATED DEMONSTRATION</b> Scripted inputs and timings — not real player data. The adaptive engine’s responses are live.</p>
+        <p class="demo-caption" id="demo-caption" aria-live="polite" hidden></p>
+        <div class="compare-tabs" role="tablist" aria-label="Choose player">
+          <button type="button" role="tab" data-tab="A" aria-selected="true">A</button>
+          <button type="button" role="tab" data-tab="B" aria-selected="false">B</button>
+        </div>
+        <div class="compare-cols" data-show="A">
+          <section class="col" id="col-A" data-slot="A" aria-label="Player A">
+            <header class="col-head"><span class="slot-tag mono">A</span><b data-col-name>Player A</b><span class="col-status" data-col-status></span></header>
+            <div class="col-path" data-col-path></div>
+            <div class="col-readout" data-col-readout aria-live="off"></div>
+            <div data-col-chamber></div>
+          </section>
+          <section class="col" id="col-B" data-slot="B" aria-label="Player B">
+            <header class="col-head"><span class="slot-tag mono">B</span><b data-col-name>Player B</b><span class="col-status" data-col-status></span></header>
+            <div class="col-path" data-col-path></div>
+            <div class="col-readout" data-col-readout aria-live="off"></div>
+            <div data-col-chamber></div>
+          </section>
+        </div>
+        <section class="panel compare-board" id="compare-board" aria-label="Side-by-side comparison"></section>
+      </section>
+
+      <!-- ============ COMPLETE / REPORT (rendered by JS) ============ -->
+      <section class="screen screen-complete" id="screen-complete" data-screen hidden aria-label="Case solved"></section>
+      <section class="screen screen-report" id="screen-report" data-screen hidden aria-label="Session report"></section>
+    </main>
+
+    <!-- ============ DIALOGS ============ -->
+    <dialog class="dialog dialog-how" id="dlg-how" aria-labelledby="how-title">
+      <form method="dialog">
+        <p class="eyebrow mono">// HOW IT WORKS</p>
+        <h2 id="how-title">The box watches how you solve — then rebuilds itself.</h2>
+        <ol class="how-steps">
+          <li><span class="mono">01 · OBSERVE</span><b>Every room is tracked.</b> Attempts, time spent, hints requested and which hint levels you needed.</li>
+          <li><span class="mono">02 · ADAPT THE CLUE</span><b>Hints change shape.</b> Nudge → Direction → Guided reasoning. Miss twice and the box offers a clearer clue; miss three times and it switches format — visual, step-by-step, a table. It never just gives you the answer.</li>
+          <li><span class="mono">03 · CHOOSE THE PATH</span><b>The next room is picked for you.</b> A fast, clean solve unlocks <em>Challenge Mode</em>. Needing support leads to <em>Guided Discovery</em>, which builds up gradually. Both paths reach the same core.</li>
+          <li><span class="mono">04 · EXPLAIN</span><b>Nothing is hidden.</b> Every adaptation shows its reason, and the rules are inspectable in the Adaptive System panel.</li>
+        </ol>
+        <p class="muted small">GlitchBox uses transparent, rule-based logic — not a trained AI model or external service. Insights describe one session of play, never ability or personality.</p>
+        <div class="dialog-actions"><button class="btn btn-primary" value="close">Got it</button></div>
+      </form>
+    </dialog>
+
+    <dialog class="dialog" id="dlg-confirm" aria-labelledby="confirm-title">
+      <form method="dialog">
+        <h2 id="confirm-title">Are you sure?</h2>
+        <p id="confirm-body"></p>
+        <div class="dialog-actions">
+          <button class="btn btn-ghost" value="cancel">Cancel</button>
+          <button class="btn btn-danger" value="ok" id="confirm-ok">Confirm</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="js/puzzles.js"></script>
+    <script src="js/adaptiveEngine.js"></script>
+    <script src="js/sessionManager.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/demo.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
